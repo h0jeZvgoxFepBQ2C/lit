@@ -1,9 +1,7 @@
 //= require ./mousetrap.js
 "use strict";
 
-if (window.Lit) {
-  console.error("Lit is already defined. Did you include it twice maybe?")
-} else {
+if(!window.Lit) {
   window.Lit = {
     frontendEditor: {
       create: null,
