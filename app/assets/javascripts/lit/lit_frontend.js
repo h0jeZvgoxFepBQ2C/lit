@@ -1,6 +1,17 @@
 //= require ./mousetrap.js
 "use strict";
 
+if (window.Lit) {
+  console.error("Lit is already defined. Did you include it twice maybe?")
+} else {
+  window.Lit = {
+    frontendEditor: {
+      create: null,
+      remove: null
+    }
+  }
+}
+
 (function() {
   var $btn, $elem;
   var buildLocalizationForm, getLocalizationPath, getLocalizationDetails,
@@ -48,10 +59,16 @@
     $this.attr('contenteditable', true);
     if(value)
       $this.html(value);
-    $this.focus();
+    $this.focus()
+    if(window.Lit && window.Lit.frontendEditor && typeof(window.Lit.frontendEditor.create) === "function") {
+      window.Lit.frontendEditor.create($this)
+    }
     $this.on('blur', function(){
       submitForm($this, $this.html(), update_path);
       removeLitForm();
+      if(window.Lit && window.Lit.frontendEditor && typeof(window.Lit.frontendEditor.remove) === "function") {
+        window.Lit.frontendEditor.remove($this)
+      }
     });
   };
 
