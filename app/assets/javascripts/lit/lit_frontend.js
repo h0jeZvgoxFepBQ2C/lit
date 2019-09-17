@@ -5,15 +5,46 @@ if(!window.Lit) {
   window.Lit = {
     frontendEditor: {
       create: null,
-      remove: null
+      remove: null,
+      removeLitForm: function(){
+        $('#litForm').remove();
+      },
+      submitForm: function(elem, val, update_path){
+        $.ajax({
+          type: 'PATCH',
+          dataType: 'json',
+          url: update_path,
+          data: { 'localization[translated_value]': val },
+          success: function(data){
+            elem.html( data.html );
+            elem.attr('contentEditable', false);
+            console.log('saved ' + elem.data('key'));
+          },
+          error: function(){
+            console.error('cannot save ' + elem.data('key'));
+            alert('cannot save ' + elem.data('key'));
+          }
+        });
+      },
+      replaceWithForm: function(elem, value, update_path){
+        window.Lit.frontendEditor.removeLitForm();
+        var $this = $(elem);
+        $this.attr('contenteditable', true);
+        if(value)
+          $this.html(value);
+        $this.focus()
+        $this.on('blur', function(){
+          window.Lit.frontendEditor.submitForm($this, $this.html(), update_path);
+          window.Lit.frontendEditor.removeLitForm();
+        });
+      }
     }
   }
 }
 
 (function() {
   var $btn, $elem;
-  var buildLocalizationForm, getLocalizationPath, getLocalizationDetails,
-    replaceWithForm, submitForm, removeLitForm;
+  var buildLocalizationForm, getLocalizationPath, getLocalizationDetails;
 
   buildLocalizationForm = function(e){
     e.stopPropagation();
@@ -46,57 +77,16 @@ if(!window.Lit) {
   getLocalizationDetails = function(elem, path){
     $.getJSON(path, {},
       function(data){
-        replaceWithForm(elem, data.value, path);
+        window.Lit.frontendEditor.replaceWithForm(elem, data.value, path);
       }
     );
-  };
-
-  replaceWithForm = function(elem, value, update_path){
-    removeLitForm();
-    var $this = $(elem);
-    $this.attr('contenteditable', true);
-    if(value)
-      $this.html(value);
-    $this.focus()
-    if(window.Lit && window.Lit.frontendEditor && typeof(window.Lit.frontendEditor.create) === "function") {
-      window.Lit.frontendEditor.create(elem)
-    }
-    $this.on('blur', function(){
-      submitForm($this, $this.html(), update_path);
-      removeLitForm();
-      if(window.Lit && window.Lit.frontendEditor && typeof(window.Lit.frontendEditor.remove) === "function") {
-        window.Lit.frontendEditor.remove(elem)
-      }
-    });
-  };
-
-  submitForm = function(elem, val, update_path){
-    $.ajax({
-      type: 'PATCH',
-      dataType: 'json',
-      url: update_path,
-      data: { 'localization[translated_value]': val },
-      success: function(data){
-        elem.html( data.html );
-        elem.attr('contentEditable', false);
-        console.log('saved ' + elem.data('key'));
-      },
-      error: function(){
-        console.error('cannot save ' + elem.data('key'));
-        alert('cannot save ' + elem.data('key'));
-      }
-    });
-  };
-
-  removeLitForm = function(){
-    $('#litForm').remove();
   };
 
   $(document).ready(function(){
     $('<div id="lit_button_wrapper" />').appendTo('body');
     $btn = $('#lit_button_wrapper').text('Enable / disable lit highlight');
     $btn.on('click', function(){
-      removeLitForm();
+      window.Lit.frontendEditor.removeLitForm();
       if($btn.hasClass('lit-highlight-enabled')){
         $('.lit-key-generic').removeClass('lit-key-highlight').off('click.lit');
         $btn.removeClass('lit-highlight-enabled');
