@@ -59,13 +59,13 @@ if(!window.Lit) {
       $this.html(value);
     $this.focus()
     if(window.Lit && window.Lit.frontendEditor && typeof(window.Lit.frontendEditor.create) === "function") {
-      window.Lit.frontendEditor.create($this)
+      window.Lit.frontendEditor.create(elem)
     }
     $this.on('blur', function(){
       submitForm($this, $this.html(), update_path);
       removeLitForm();
       if(window.Lit && window.Lit.frontendEditor && typeof(window.Lit.frontendEditor.remove) === "function") {
-        window.Lit.frontendEditor.remove($this)
+        window.Lit.frontendEditor.remove(elem)
       }
     });
   };
